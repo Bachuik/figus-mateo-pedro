@@ -67,12 +67,13 @@
   .empty-msg { text-align: center; color: #4a6a85; padding: 30px 0; font-size: 0.9rem; }
 
   .action-btn {
-    display: block; width: calc(100% - 28px); margin: 0 14px 8px;
-    padding: 12px; border-radius: 10px; border: 1px solid; font-size: 0.9rem;
-    font-weight: 700; cursor: pointer; text-align: center; -webkit-tap-highlight-color: transparent;
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 40px; height: 40px; margin: 0 14px 8px;
+    border-radius: 10px; border: 1px solid #f5a623;
+    font-size: 1.2rem; cursor: pointer; -webkit-tap-highlight-color: transparent;
+    background: #1e3a55;
   }
-  .btn-print { background: #1e3a55; color: #f5a623; border-color: #f5a623; }
-  .btn-print:active { background: #2a4a65; }
+  .action-btn:active { background: #2a4a65; }
 
   #loadingMsg { text-align: center; padding: 40px 20px; color: #aac4de; font-size: 0.95rem; }
   .sync-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #4ade80; margin-left: 6px; animation: pulse 1.5s infinite; }
@@ -109,8 +110,7 @@
   <input type="text" id="searchInput" placeholder="🔍 Buscar equipo..." oninput="filterTeams(this.value)">
 </div>
 
-<button class="action-btn btn-print" onclick="imprimir()">🖨️ Imprimir figus faltantes</button>
-<button class="action-btn" style="background:#1a3a1a;border-color:#4ade80;color:#4ade80;border:1px solid;" onclick="exportarASupabase()">📤 Subir mis datos a la nube</button>
+<button class="action-btn" onclick="imprimir()" title="Imprimir figus faltantes">🖨️</button>
 
 <div id="loadingMsg">⏳ Cargando datos...</div>
 <div class="teams-container" id="teamsContainer"></div>
@@ -366,16 +366,16 @@ function imprimir() {
     const got = (state[t.code] || []).map(String);
     const faltan = t.all.map(String).filter(n => !got.includes(n));
     if (faltan.length === 0) {
-      rows += `<div class="print-row"><span class="print-team">${t.flag} ${t.code}</span><span class="print-complete">✓ Completo</span></div>`;
+      rows += `<div class="print-row"><span class="print-team">${t.code}</span><span class="print-complete">✓ Completo</span></div>`;
     } else {
-      rows += `<div class="print-row"><span class="print-team">${t.flag} ${t.code}</span><span class="print-nums">${faltan.join(' - ')}</span></div>`;
+      rows += `<div class="print-row"><span class="print-team">${t.code}</span><span class="print-nums">${faltan.join(' - ')}</span></div>`;
     }
   });
   const area = document.getElementById('printArea');
-  area.style.display = 'block';
   area.innerHTML = `<div class="print-title">⚽ Álbum Mateo y Pedro — Figus que faltan</div><div class="print-subtitle">Total faltantes: ${totalFaltan} figus &nbsp;|&nbsp; ${hoy}</div><div class="print-grid">${rows}</div>`;
+  area.style.display = 'block';
+  window.onafterprint = () => { area.style.display = 'none'; };
   window.print();
-  area.style.display = 'none';
 }
 
 // Arrancar
