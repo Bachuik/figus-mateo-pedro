@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Álbum Mateo y Pedro ⚽</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: #0d1b2a; color: #fff; min-height: 100vh; }
+
+  header {
+    background: linear-gradient(135deg, #1a3a5c, #0d1b2a);
+    padding: 16px 16px 12px;
+    text-align: center;
+    border-bottom: 2px solid #f5a623;
+    position: sticky; top: 0; z-index: 10;
+  }
+  header h1 { font-size: 1.3rem; font-weight: 800; color: #f5a623; letter-spacing: 1px; }
+  header p { font-size: 0.75rem; color: #aac4de; margin-top: 4px; }
+
+  .stats-bar { display: flex; justify-content: center; gap: 20px; padding: 10px 16px; background: #122236; border-bottom: 1px solid #1e3a55; }
+  .stat { text-align: center; }
+  .stat-num { font-size: 1.4rem; font-weight: 800; color: #f5a623; line-height: 1; }
+  .stat-label { font-size: 0.65rem; color: #aac4de; text-transform: uppercase; letter-spacing: 0.5px; }
+
+  .search-bar { padding: 10px 14px; background: #122236; }
+  .search-bar input { width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid #1e3a55; background: #0d1b2a; color: #fff; font-size: 0.9rem; outline: none; }
+  .search-bar input::placeholder { color: #4a6a85; }
+  .search-bar input:focus { border-color: #f5a623; }
+
+  .teams-container { padding: 10px 14px 80px; }
+
+  .team-block { background: #122236; border-radius: 10px; margin-bottom: 10px; overflow: hidden; border: 1px solid #1e3a55; }
+  .team-header { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; }
+  .team-header:active { background: #1a3a5c; }
+  .team-flag-name { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 0.95rem; }
+  .team-flag { font-size: 1.2rem; }
+  .team-badge { display: flex; align-items: center; gap: 8px; }
+  .team-count { font-size: 0.75rem; color: #aac4de; }
+  .team-count span { color: #f5a623; font-weight: 700; }
+  .chevron { color: #4a6a85; font-size: 0.8rem; transition: transform 0.2s; }
+  .team-block.open .chevron { transform: rotate(180deg); }
+  .all-done-badge { font-size: 0.7rem; background: #1a4a1a; color: #4ade80; padding: 2px 8px; border-radius: 20px; font-weight: 700; }
+
+  .nums-grid { display: none; padding: 8px 12px 12px; gap: 6px; flex-wrap: wrap; border-top: 1px solid #1e3a55; }
+  .team-block.open .nums-grid { display: flex; }
+
+  .figu-btn { width: 40px; height: 40px; border-radius: 8px; border: none; font-size: 0.8rem; font-weight: 700; cursor: pointer; transition: transform 0.1s, opacity 0.2s; -webkit-tap-highlight-color: transparent; }
+  .figu-btn:active { transform: scale(0.88); }
+  .figu-btn.missing { background: #c0392b; color: #fff; }
+  .figu-btn.got { background: #1a3a1a; color: #4ade80; opacity: 0.5; text-decoration: line-through; }
+
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 100; align-items: center; justify-content: center; padding: 20px; }
+  .modal-overlay.active { display: flex; }
+  .modal { background: #122236; border-radius: 16px; padding: 24px 20px; width: 100%; max-width: 320px; border: 1px solid #f5a623; text-align: center; animation: popIn 0.15s ease; }
+  @keyframes popIn { from { transform: scale(0.85); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  .modal-icon { font-size: 2.5rem; margin-bottom: 10px; }
+  .modal h2 { font-size: 1.1rem; margin-bottom: 6px; color: #f5a623; }
+  .modal p { font-size: 0.85rem; color: #aac4de; margin-bottom: 20px; }
+  .modal-btns { display: flex; gap: 10px; }
+  .btn-cancel, .btn-confirm { flex: 1; padding: 12px; border-radius: 10px; border: none; font-size: 0.9rem; font-weight: 700; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+  .btn-cancel { background: #1e3a55; color: #aac4de; }
+  .btn-confirm { background: #f5a623; color: #0d1b2a; }
+  .btn-cancel:active { background: #2a4a65; }
+  .btn-confirm:active { background: #d4901f; }
+
+  .empty-msg { text-align: center; color: #4a6a85; padding: 30px 0; font-size: 0.9rem; }
+
+  .action-btn {
+    display: block; width: calc(100% - 28px); margin: 0 14px 8px;
+    padding: 12px; border-radius: 10px; border: 1px solid; font-size: 0.9rem;
+    font-weight: 700; cursor: pointer; text-align: center; -webkit-tap-highlight-color: transparent;
+  }
+  .btn-print { background: #1e3a55; color: #f5a623; border-color: #f5a623; }
+  .btn-print:active { background: #2a4a65; }
+
+  #loadingMsg { text-align: center; padding: 40px 20px; color: #aac4de; font-size: 0.95rem; }
+  .sync-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #4ade80; margin-left: 6px; animation: pulse 1.5s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+  @media print {
+    body * { visibility: hidden; }
+    #printArea, #printArea * { visibility: visible; }
+    #printArea { position: fixed; top: 0; left: 0; width: 100%; background: white; color: black; font-family: Arial, sans-serif; padding: 15mm; }
+    .print-title { font-size: 16pt; font-weight: bold; text-align: center; margin-bottom: 4mm; border-bottom: 2px solid #333; padding-bottom: 3mm; }
+    .print-subtitle { font-size: 9pt; text-align: center; color: #555; margin-bottom: 5mm; }
+    .print-grid { columns: 2; column-gap: 8mm; }
+    .print-row { display: flex; align-items: baseline; gap: 5px; padding: 2px 0; border-bottom: 1px dotted #ccc; font-size: 9.5pt; break-inside: avoid; }
+    .print-team { font-weight: bold; min-width: 42px; }
+    .print-nums { color: #c0392b; font-weight: 600; flex: 1; }
+    .print-complete { color: #27ae60; font-style: italic; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>⚽ Álbum Mateo y Pedro</h1>
+  <p>Tocá un número para marcarlo como conseguido</p>
+</header>
+
+<div class="stats-bar">
+  <div class="stat"><div class="stat-num" id="totalFaltan">-</div><div class="stat-label">Faltan</div></div>
+  <div class="stat"><div class="stat-num" id="totalConseguidas">-</div><div class="stat-label">Conseguidas</div></div>
+  <div class="stat"><div class="stat-num" id="totalEquipos">-</div><div class="stat-label">Equipos</div></div>
+</div>
+
+<div class="search-bar">
+  <input type="text" id="searchInput" placeholder="🔍 Buscar equipo..." oninput="filterTeams(this.value)">
+</div>
+
+<button class="action-btn btn-print" onclick="imprimir()">🖨️ Imprimir figus faltantes</button>
+
+<div id="loadingMsg">⏳ Cargando datos...</div>
+<div class="teams-container" id="teamsContainer"></div>
+<div id="printArea" style="display:none"></div>
+
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-icon">🏷️</div>
+    <h2 id="modalTitle">¿La conseguiste?</h2>
+    <p id="modalText"></p>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeModal()">No, cancelar</button>
+      <button class="btn-confirm" id="btnConfirm" onclick="confirmGot()">¡Sí, la tengo!</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://udewlbewowzbmfcdooha.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_MX8hqxlcQ5bn05lgjHRlQw_GUmjclUm';
+const ROW_ID = 'mateo-pedro';
+const LOCAL_KEY = 'figus-mateo-pedro-v2';
+
+const teamsData = [
+  { code: "Panini", flag: "📒", all: ["FWC1","FWC2","FWC3","FWC4","FWC5","FWC6","FWC7","FWC8"], faltan: ["FWC1","FWC3","FWC4","FWC5","FWC7","FWC8"] },
+  { code: "Mexico",  flag: "🇲🇽", faltan: [1,2,3,4,9,10,14,17,18] },
+  { code: "RSA",     flag: "🇿🇦", faltan: [4,10,11,12,17,20] },
+  { code: "KOR",     flag: "🇰🇷", faltan: [2,8,10,11,13,14,15,16,17,19] },
+  { code: "CZE",     flag: "🇨🇿", faltan: [3,4,6,8,10,12,13,15,16,17,19] },
+  { code: "CAN",     flag: "🇨🇦", faltan: [4,6,7,10,12,13,16,19] },
+  { code: "BIH",     flag: "🇧🇦", faltan: [2,4,6,10,16,19,20] },
+  { code: "QAT",     flag: "🇶🇦", faltan: [1,12,13,15,17,20] },
+  { code: "SUI",     flag: "🇨🇭", faltan: [1,4,6,7,11,16,17,19] },
+  { code: "BRA",     flag: "🇧🇷", faltan: [9,10,16,19] },
+  { code: "MAR",     flag: "🇲🇦", faltan: [3,6,7,9,10,11,12,15,16,19,20] },
+  { code: "HAI",     flag: "🇭🇹", faltan: [3,7,8,12,16,17,19,20] },
+  { code: "SCO",     flag: "🏴󠁧󠁢󠁳󠁣󠁴󠁿", faltan: [1,2,6,7,9,10,11,16,17,20] },
+  { code: "USA",     flag: "🇺🇸", faltan: [1,4,6,7,8,10,12,13,17,20] },
+  { code: "PAR",     flag: "🇵🇾", faltan: [2,3,4,6,7,8,11,14,15,16,17,18,19] },
+  { code: "AUS",     flag: "🇦🇺", faltan: [3,6,8,10,11,13,15,16,19,20] },
+  { code: "TUR",     flag: "🇹🇷", faltan: [5,6,8,9,16,17,18,19] },
+  { code: "GER",     flag: "🇩🇪", faltan: [1,3,5,7,9,11,14,16,17] },
+  { code: "CUW",     flag: "🏝️",  faltan: [3,4,6,9,10,11,12,14,16,17,19] },
+  { code: "CIV",     flag: "🇨🇮", faltan: [2,5,7,8,11,13,14,16,18] },
+  { code: "ECU",     flag: "🇪🇨", faltan: [3,6,8,10,16,18,19] },
+  { code: "NED",     flag: "🇳🇱", faltan: [2,18] },
+  { code: "JPN",     flag: "🇯🇵", faltan: [2,5,11,13,15,19,20] },
+  { code: "SWE",     flag: "🇸🇪", faltan: [7,9,11,16] },
+  { code: "TUN",     flag: "🇹🇳", faltan: [2,6,8,10,12,14,16,17,19,20] },
+  { code: "BEL",     flag: "🇧🇪", faltan: [2,3,5,6,8,10,13,18,19,20] },
+  { code: "EGY",     flag: "🇪🇬", faltan: [1,2,4,7,12,13,14,17] },
+  { code: "IRN",     flag: "🇮🇷", faltan: [1,3,8,12,15,19] },
+  { code: "NZL",     flag: "🇳🇿", faltan: [3,5,7,9,13,16] },
+  { code: "ESP",     flag: "🇪🇸", faltan: [8,10,13,14,15,18,19] },
+  { code: "CPV",     flag: "🇨🇻", faltan: [4,8,11,15,16,17,19,20] },
+  { code: "KSA",     flag: "🇸🇦", faltan: [3,5,7,8,9,10,12,13,18,20] },
+  { code: "URU",     flag: "🇺🇾", faltan: [1,5,6,7,8,9,10,12,13] },
+  { code: "FRA",     flag: "🇫🇷", faltan: [1,4,6,15,17,19,20] },
+  { code: "SEN",     flag: "🇸🇳", faltan: [1,2,4,5,6,10,11,14,15,17,19] },
+  { code: "IRQ",     flag: "🇮🇶", faltan: [2,3,8,10,14,17,19] },
+  { code: "NOR",     flag: "🇳🇴", faltan: [2,3,10,13,16,20] },
+  { code: "ARG",     flag: "🇦🇷", faltan: [4,9,12,14,16,17] },
+  { code: "ALG",     flag: "🇩🇿", faltan: [5,6,8,11,12,15,16,17] },
+  { code: "AUT",     flag: "🇦🇹", faltan: [4,8,9,12,14,17,20] },
+  { code: "JOR",     flag: "🇯🇴", faltan: [2,5,8,10,12,14,16,17,19,20] },
+  { code: "POR",     flag: "🇵🇹", faltan: [4,5,8,12,13,16,17] },
+  { code: "COD",     flag: "🇨🇩", faltan: [1,4,10,11,13,14,16,20] },
+  { code: "UZB",     flag: "🇺🇿", faltan: [2,4,6,10,15,17,19] },
+  { code: "COL",     flag: "🇨🇴", faltan: [2,4,6,7,8,10,11,15,19,20] },
+  { code: "ENG",     flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", faltan: [1,2,4,8,12,14,16,17,19,20] },
+  { code: "CRO",     flag: "🇭🇷", faltan: [2,6,10,11,15,17,19] },
+  { code: "GHA",     flag: "🇬🇭", faltan: [1,2,6,10,14,19] },
+  { code: "PAN",     flag: "🇵🇦", faltan: [1,5,9,10,11,14,15,16,18,20] },
+  { code: "FWC",     flag: "🏆",  all: [9,10,11,12,13,14,15,16,17,18,19], faltan: [10,11,19] },
+];
+
+teamsData.forEach(t => {
+  if (!t.all) t.all = Array.from({length: 20}, (_, i) => i + 1);
+  if (!t.faltan) t.faltan = [];
+});
+
+let state = {};
+let pending = null;
+
+function estadoInicial() {
+  state = {};
+  teamsData.forEach(t => {
+    const faltanStr = t.faltan.map(String);
+    state[t.code] = t.all.map(String).filter(n => !faltanStr.includes(n));
+  });
+}
+
+async function cargarDesdeSupabase() {
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/figus?id=eq.${ROW_ID}&select=state`, {
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+    });
+    const data = await res.json();
+    if (data && data[0] && Object.keys(data[0].state).length > 0) {
+      // Supabase tiene datos — usarlos
+      state = data[0].state;
+    } else {
+      // Supabase vacío — migrar desde localStorage si hay
+      const local = localStorage.getItem(LOCAL_KEY);
+      if (local) {
+        state = JSON.parse(local);
+        await guardarEnSupabase();
+        localStorage.removeItem(LOCAL_KEY);
+      } else {
+        estadoInicial();
+        await guardarEnSupabase();
+      }
+    }
+  } catch(e) {
+    // Sin internet — usar localStorage como fallback
+    const local = localStorage.getItem(LOCAL_KEY);
+    if (local) {
+      state = JSON.parse(local);
+    } else {
+      estadoInicial();
+    }
+  }
+  document.getElementById('loadingMsg').style.display = 'none';
+  renderTeams();
+  updateStats();
+}
+
+async function guardarEnSupabase() {
+  localStorage.setItem(LOCAL_KEY, JSON.stringify(state));
+  try {
+    await fetch(`${SUPABASE_URL}/rest/v1/figus?id=eq.${ROW_ID}`, {
+      method: 'PATCH',
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${SUPABASE_KEY}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({ state, updated_at: new Date().toISOString() })
+    });
+  } catch(e) {
+    console.log('Sin conexión, guardado solo local');
+  }
+}
+
+function saveState() { guardarEnSupabase(); }
+
+function updateStats() {
+  let totalFaltan = 0, totalTienen = 0, equiposCompletos = 0;
+  teamsData.forEach(t => {
+    const got = state[t.code] || [];
+    const faltan = t.all.length - got.length;
+    totalFaltan += faltan;
+    totalTienen += got.length;
+    if (faltan === 0) equiposCompletos++;
+  });
+  document.getElementById('totalFaltan').textContent = totalFaltan;
+  document.getElementById('totalConseguidas').textContent = totalTienen;
+  document.getElementById('totalEquipos').textContent = equiposCompletos + '/' + teamsData.length;
+}
+
+function renderTeams(filter = '') {
+  const container = document.getElementById('teamsContainer');
+  const filtered = teamsData.filter(t => t.code.toLowerCase().includes((filter||'').toLowerCase()));
+  if (filtered.length === 0) { container.innerHTML = '<div class="empty-msg">No se encontró ese equipo</div>'; return; }
+  container.innerHTML = '';
+  filtered.forEach(team => {
+    const got = state[team.code] || [];
+    const faltan = team.all.length - got.length;
+    const allDone = faltan === 0;
+    const block = document.createElement('div');
+    block.className = 'team-block';
+    block.dataset.code = team.code;
+    block.innerHTML = `
+      <div class="team-header" onclick="toggleTeam('${team.code}')">
+        <div class="team-flag-name"><span class="team-flag">${team.flag}</span><span>${team.code}</span></div>
+        <div class="team-badge">
+          ${allDone ? '<span class="all-done-badge">✅ Completo</span>' : `<span class="team-count">Faltan <span>${faltan}</span></span>`}
+          <span class="chevron">▼</span>
+        </div>
+      </div>
+      <div class="nums-grid">
+        ${team.all.map(n => {
+          const key = String(n);
+          const isGot = got.includes(key);
+          return `<button class="figu-btn ${isGot ? 'got' : 'missing'}" onclick="askConfirm('${team.code}','${key}','${team.code}',${isGot})">${n}</button>`;
+        }).join('')}
+      </div>`;
+    container.appendChild(block);
+  });
+}
+
+function toggleTeam(code) {
+  const block = document.querySelector(`.team-block[data-code="${code}"]`);
+  if (!block) return;
+  const isOpen = block.classList.contains('open');
+  document.querySelectorAll('.team-block.open').forEach(b => b.classList.remove('open'));
+  if (!isOpen) block.classList.add('open');
+}
+
+function askConfirm(teamCode, num, teamName, isGot) {
+  pending = { teamCode, num, isGot };
+  document.getElementById('modalTitle').textContent = isGot ? '¿Marcarla como faltante?' : '¿La consiguieron?';
+  document.getElementById('modalText').textContent = isGot
+    ? `La figu #${num} de ${teamName} va a quedar como faltante.`
+    : `La figu #${num} de ${teamName} se marca como conseguida. 🎉`;
+  document.getElementById('btnConfirm').textContent = isGot ? '¡Sí, me falta!' : '¡Sí, la tengo!';
+  document.getElementById('modalOverlay').classList.add('active');
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('active');
+  pending = null;
+}
+
+function confirmGot() {
+  if (!pending) return;
+  const { teamCode, num, isGot } = pending;
+  if (!state[teamCode]) state[teamCode] = [];
+  if (isGot) {
+    state[teamCode] = state[teamCode].filter(n => n !== num);
+  } else {
+    if (!state[teamCode].includes(num)) state[teamCode].push(num);
+  }
+  const openCode = teamCode;
+  saveState();
+  closeModal();
+  renderTeams(document.getElementById('searchInput').value);
+  const block = document.querySelector(`.team-block[data-code="${openCode}"]`);
+  if (block) block.classList.add('open');
+  updateStats();
+}
+
+function filterTeams(val) { renderTeams(val); }
+
+document.getElementById('modalOverlay').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+
+function imprimir() {
+  const hoy = new Date().toLocaleDateString('es-AR');
+  let totalFaltan = 0;
+  teamsData.forEach(t => { const got = state[t.code] || []; totalFaltan += t.all.length - got.length; });
+  let rows = '';
+  teamsData.forEach(t => {
+    const got = (state[t.code] || []).map(String);
+    const faltan = t.all.map(String).filter(n => !got.includes(n));
+    if (faltan.length === 0) {
+      rows += `<div class="print-row"><span class="print-team">${t.flag} ${t.code}</span><span class="print-complete">✓ Completo</span></div>`;
+    } else {
+      rows += `<div class="print-row"><span class="print-team">${t.flag} ${t.code}</span><span class="print-nums">${faltan.join(' - ')}</span></div>`;
+    }
+  });
+  const area = document.getElementById('printArea');
+  area.style.display = 'block';
+  area.innerHTML = `<div class="print-title">⚽ Álbum Mateo y Pedro — Figus que faltan</div><div class="print-subtitle">Total faltantes: ${totalFaltan} figus &nbsp;|&nbsp; ${hoy}</div><div class="print-grid">${rows}</div>`;
+  window.print();
+  area.style.display = 'none';
+}
+
+// Arrancar
+cargarDesdeSupabase();
+</script>
+</body>
+</html>
