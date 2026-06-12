@@ -110,6 +110,7 @@
 </div>
 
 <button class="action-btn btn-print" onclick="imprimir()">🖨️ Imprimir figus faltantes</button>
+<button class="action-btn" style="background:#1a3a1a;border-color:#4ade80;color:#4ade80;border:1px solid;" onclick="exportarASupabase()">📤 Subir mis datos a la nube</button>
 
 <div id="loadingMsg">⏳ Cargando datos...</div>
 <div class="teams-container" id="teamsContainer"></div>
@@ -348,6 +349,13 @@ function filterTeams(val) { renderTeams(val); }
 document.getElementById('modalOverlay').addEventListener('click', function(e) {
   if (e.target === this) closeModal();
 });
+
+function exportarASupabase() {
+  const local = localStorage.getItem(LOCAL_KEY);
+  if (!local) { alert('No hay datos locales para subir.'); return; }
+  state = JSON.parse(local);
+  guardarEnSupabase().then(() => alert('✅ Datos subidos a la nube correctamente!'));
+}
 
 function imprimir() {
   const hoy = new Date().toLocaleDateString('es-AR');
