@@ -76,21 +76,6 @@
   .action-btn:active { background: #2a4a65; }
 
   #loadingMsg { text-align: center; padding: 40px 20px; color: #aac4de; font-size: 0.95rem; }
-  .sync-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #4ade80; margin-left: 6px; animation: pulse 1.5s infinite; }
-  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
-
-  @media print {
-    body * { visibility: hidden; }
-    #printArea, #printArea * { visibility: visible; }
-    #printArea { position: fixed; top: 0; left: 0; width: 100%; background: white; color: black; font-family: Arial, sans-serif; padding: 15mm; }
-    .print-title { font-size: 16pt; font-weight: bold; text-align: center; margin-bottom: 4mm; border-bottom: 2px solid #333; padding-bottom: 3mm; }
-    .print-subtitle { font-size: 9pt; text-align: center; color: #555; margin-bottom: 5mm; }
-    .print-grid { columns: 2; column-gap: 8mm; }
-    .print-row { display: flex; align-items: baseline; gap: 5px; padding: 2px 0; border-bottom: 1px dotted #ccc; font-size: 9.5pt; break-inside: avoid; }
-    .print-team { font-weight: bold; min-width: 42px; }
-    .print-nums { color: #c0392b; font-weight: 600; flex: 1; }
-    .print-complete { color: #27ae60; font-style: italic; }
-  }
 </style>
 </head>
 <body>
@@ -366,16 +351,47 @@ function imprimir() {
     const got = (state[t.code] || []).map(String);
     const faltan = t.all.map(String).filter(n => !got.includes(n));
     if (faltan.length === 0) {
-      rows += `<div class="print-row"><span class="print-team">${t.code}</span><span class="print-complete">✓ Completo</span></div>`;
+      rows += `<tr><td style="font-weight:bold;padding:2px 6px;">${t.code}</td><td style="color:#27ae60;font-style:italic;">✓ Completo</td></tr>`;
     } else {
-      rows += `<div class="print-row"><span class="print-team">${t.code}</span><span class="print-nums">${faltan.join(' - ')}</span></div>`;
+      rows += `<tr><td style="font-weight:bold;padding:2px 6px;">${t.code}</td><td style="color:#c0392b;font-weight:600;">${faltan.join(' - ')}</td></tr>`;
     }
   });
-  const area = document.getElementById('printArea');
-  area.innerHTML = `<div class="print-title">⚽ Álbum Mateo y Pedro — Figus que faltan</div><div class="print-subtitle">Total faltantes: ${totalFaltan} figus &nbsp;|&nbsp; ${hoy}</div><div class="print-grid">${rows}</div>`;
-  area.style.display = 'block';
-  window.onafterprint = () => { area.style.display = 'none'; };
-  window.print();
+
+  const mitad = Math.ceil(teamsData.length / 2);
+  const filas = teamsData.map((t, i) => {
+    const got = (state[t.code] || []).map(String);
+    const faltan = t.all.map(String).filter(n => !got.includes(n));
+    return faltan.length === 0
+      ? `<tr><td style="font-weight:bold;padding:1px 4px;font-size:9pt;">${t.code}</td><td style="color:#27ae60;font-size:9pt;">✓</td></tr>`
+      : `<tr><td style="font-weight:bold;padding:1px 4px;font-size:9pt;">${t.code}</td><td style="color:#c0392b;font-weight:600;font-size:9pt;">${faltan.join(' - ')}</td></tr>`;
+  });
+
+  const col1 = filas.slice(0, mitad).join('');
+  const col2 = filas.slice(mitad).join('');
+
+  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
+  <title>Figus Mateo y Pedro</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 15mm; color: black; }
+    h2 { text-align: center; font-size: 14pt; border-bottom: 2px solid #333; padding-bottom: 4px; margin-bottom: 4px; }
+    p { text-align: center; font-size: 9pt; color: #555; margin-bottom: 8px; }
+    .cols { display: flex; gap: 10mm; }
+    table { border-collapse: collapse; width: 100%; }
+    tr { border-bottom: 1px dotted #ccc; }
+  </style>
+  </head><body>
+  <h2>⚽ Álbum Mateo y Pedro — Figus que faltan</h2>
+  <p>Total faltantes: ${totalFaltan} &nbsp;|&nbsp; ${hoy}</p>
+  <div class="cols">
+    <table>${col1}</table>
+    <table>${col2}</table>
+  </div>
+  <script>window.onload = function(){ window.print(); window.onafterprint = function(){ window.close(); }; }<\/script>
+  </body></html>`;
+
+  const ventana = window.open('', '_blank', 'width=800,height=600');
+  ventana.document.write(html);
+  ventana.document.close();
 }
 
 // Arrancar
