@@ -10,13 +10,23 @@
 
   header {
     background: linear-gradient(135deg, #1a3a5c, #0d1b2a);
-    padding: 16px 16px 12px;
+    padding: 16px 16px 0;
     text-align: center;
     border-bottom: 2px solid #f5a623;
     position: sticky; top: 0; z-index: 10;
   }
   header h1 { font-size: 1.3rem; font-weight: 800; color: #f5a623; letter-spacing: 1px; }
   header p { font-size: 0.75rem; color: #aac4de; margin-top: 4px; }
+
+  /* NAV TABS */
+  .nav-tabs { display: flex; margin-top: 10px; border-top: 1px solid #1e3a55; }
+  .nav-tab {
+    flex: 1; padding: 10px 0; text-align: center; font-size: 0.85rem; font-weight: 700;
+    color: #aac4de; cursor: pointer; border-bottom: 3px solid transparent;
+    transition: color 0.2s, border-color 0.2s; -webkit-tap-highlight-color: transparent;
+  }
+  .nav-tab.active { color: #f5a623; border-bottom-color: #f5a623; }
+  .nav-tab:active { background: rgba(255,255,255,0.05); }
 
   .stats-bar { display: flex; justify-content: center; gap: 20px; padding: 10px 16px; background: #122236; border-bottom: 1px solid #1e3a55; }
   .stat { text-align: center; }
@@ -50,6 +60,28 @@
   .figu-btn.missing { background: #c0392b; color: #fff; }
   .figu-btn.got { background: #1a3a1a; color: #4ade80; opacity: 0.5; text-decoration: line-through; }
 
+  /* REPETIDAS STYLES */
+  .figu-btn-rep {
+    min-width: 44px; height: 44px; border-radius: 8px; border: none;
+    font-size: 0.75rem; font-weight: 700; cursor: pointer;
+    transition: transform 0.1s; -webkit-tap-highlight-color: transparent;
+    padding: 0 6px; position: relative;
+  }
+  .figu-btn-rep:active { transform: scale(0.88); }
+  .figu-btn-rep.rep-none { background: #1e3a55; color: #aac4de; }
+  .figu-btn-rep.rep-has { background: #c0392b; color: #fff; }
+  .rep-count-badge {
+    position: absolute; top: -5px; right: -5px;
+    background: #f5a623; color: #0d1b2a;
+    font-size: 0.6rem; font-weight: 800;
+    border-radius: 10px; padding: 1px 4px; line-height: 1.3;
+    min-width: 16px; text-align: center;
+  }
+
+  .rep-stats-bar { background: #1a2a1a; border-bottom: 1px solid #1e4a1e; }
+  .rep-stat-num { color: #4ade80 !important; }
+
+  /* MODAL */
   .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 100; align-items: center; justify-content: center; padding: 20px; }
   .modal-overlay.active { display: flex; }
   .modal { background: #122236; border-radius: 16px; padding: 24px 20px; width: 100%; max-width: 320px; border: 1px solid #f5a623; text-align: center; animation: popIn 0.15s ease; }
@@ -64,6 +96,16 @@
   .btn-cancel:active { background: #2a4a65; }
   .btn-confirm:active { background: #d4901f; }
 
+  /* MODAL REPETIDAS */
+  .modal-rep { border-color: #c0392b; }
+  .modal-rep h2 { color: #e74c3c; }
+  .rep-counter { display: flex; align-items: center; justify-content: center; gap: 20px; margin: 16px 0; }
+  .rep-counter-btn { width: 48px; height: 48px; border-radius: 50%; border: none; font-size: 1.5rem; font-weight: 700; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+  .rep-counter-btn.minus { background: #1e3a55; color: #aac4de; }
+  .rep-counter-btn.plus { background: #c0392b; color: #fff; }
+  .rep-counter-btn:active { opacity: 0.7; transform: scale(0.9); }
+  .rep-counter-num { font-size: 2.5rem; font-weight: 800; color: #f5a623; min-width: 60px; text-align: center; }
+
   .empty-msg { text-align: center; color: #4a6a85; padding: 30px 0; font-size: 0.9rem; }
 
   .action-btn {
@@ -76,31 +118,50 @@
   .action-btn:active { background: #2a4a65; }
 
   #loadingMsg { text-align: center; padding: 40px 20px; color: #aac4de; font-size: 0.95rem; }
+
+  /* SCREENS */
+  .screen { display: none; }
+  .screen.active { display: block; }
 </style>
 </head>
 <body>
 
 <header>
   <h1>⚽ Álbum Mateo y Pedro</h1>
-  <p>Tocá un número para marcarlo como conseguido</p>
+  <div class="nav-tabs">
+    <div class="nav-tab active" id="tab-album" onclick="switchTab('album')">📋 Álbum</div>
+    <div class="nav-tab" id="tab-repetidas" onclick="switchTab('repetidas')">🔁 Repetidas</div>
+  </div>
 </header>
 
-<div class="stats-bar">
-  <div class="stat"><div class="stat-num" id="totalFaltan">-</div><div class="stat-label">Faltan</div></div>
-  <div class="stat"><div class="stat-num" id="totalConseguidas">-</div><div class="stat-label">Conseguidas</div></div>
-  <div class="stat"><div class="stat-num" id="totalEquipos">-</div><div class="stat-label">Equipos</div></div>
+<!-- SCREEN ALBUM -->
+<div class="screen active" id="screen-album">
+  <div class="stats-bar">
+    <div class="stat"><div class="stat-num" id="totalFaltan">-</div><div class="stat-label">Faltan</div></div>
+    <div class="stat"><div class="stat-num" id="totalConseguidas">-</div><div class="stat-label">Conseguidas</div></div>
+    <div class="stat"><div class="stat-num" id="totalEquipos">-</div><div class="stat-label">Equipos</div></div>
+  </div>
+  <div class="search-bar">
+    <input type="text" id="searchInput" placeholder="🔍 Buscar equipo..." oninput="filterTeams(this.value)">
+  </div>
+  <button class="action-btn" onclick="imprimir()" title="Imprimir figus faltantes">🖨️</button>
+  <div id="loadingMsg">⏳ Cargando datos...</div>
+  <div class="teams-container" id="teamsContainer"></div>
 </div>
 
-<div class="search-bar">
-  <input type="text" id="searchInput" placeholder="🔍 Buscar equipo..." oninput="filterTeams(this.value)">
+<!-- SCREEN REPETIDAS -->
+<div class="screen" id="screen-repetidas">
+  <div class="stats-bar rep-stats-bar">
+    <div class="stat"><div class="stat-num rep-stat-num" id="totalRepetidas">-</div><div class="stat-label">Repetidas</div></div>
+    <div class="stat"><div class="stat-num rep-stat-num" id="totalEquiposRep">-</div><div class="stat-label">Equipos con repet.</div></div>
+  </div>
+  <div class="search-bar">
+    <input type="text" id="searchRepInput" placeholder="🔍 Buscar equipo..." oninput="filterRep(this.value)">
+  </div>
+  <div class="teams-container" id="repContainer"></div>
 </div>
 
-<button class="action-btn" onclick="imprimir()" title="Imprimir figus faltantes">🖨️</button>
-
-<div id="loadingMsg">⏳ Cargando datos...</div>
-<div class="teams-container" id="teamsContainer"></div>
-<div id="printArea" style="display:none"></div>
-
+<!-- MODAL ALBUM -->
 <div class="modal-overlay" id="modalOverlay">
   <div class="modal">
     <div class="modal-icon">🏷️</div>
@@ -113,11 +174,31 @@
   </div>
 </div>
 
+<!-- MODAL REPETIDAS -->
+<div class="modal-overlay" id="modalRepOverlay">
+  <div class="modal modal-rep">
+    <div class="modal-icon">🔁</div>
+    <h2 id="modalRepTitle">Figu repetida</h2>
+    <p id="modalRepText">¿Cuántas tenés?</p>
+    <div class="rep-counter">
+      <button class="rep-counter-btn minus" onclick="changeRepCount(-1)">−</button>
+      <div class="rep-counter-num" id="repCountDisplay">1</div>
+      <button class="rep-counter-btn plus" onclick="changeRepCount(1)">+</button>
+    </div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeRepModal()">Cancelar</button>
+      <button class="btn-confirm" style="background:#c0392b;color:#fff;" onclick="confirmRep()">Guardar</button>
+    </div>
+  </div>
+</div>
+
 <script>
 const SUPABASE_URL = 'https://udewlbewowzbmfcdooha.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MX8hqxlcQ5bn05lgjHRlQw_GUmjclUm';
 const ROW_ID = 'mateo-pedro';
 const LOCAL_KEY = 'figus-mateo-pedro-v2';
+const REP_LOCAL_KEY = 'figus-repetidas-v1';
+const REP_ROW_ID = 'repetidas-mateo-pedro';
 
 const teamsData = [
   { code: "Panini", flag: "📒", all: ["FWC1","FWC2","FWC3","FWC4","FWC5","FWC6","FWC7","FWC8"], faltan: ["FWC1","FWC3","FWC4","FWC5","FWC7","FWC8"] },
@@ -177,9 +258,67 @@ teamsData.forEach(t => {
   if (!t.faltan) t.faltan = [];
 });
 
-let state = {};
-let pending = null;
+// Data del PDF para inicializar repetidas
+const repetidasIniciales = {
+  "Mexico":  {"3":1,"7":1,"8":1,"10":1,"16":1,"20":2},
+  "EGY":     {"1":1,"3":2,"5":1,"8":1},
+  "RSA":     {"3":1,"8":1},
+  "IRN":     {"5":2,"11":1,"13":1,"18":1,"20":2},
+  "KOR":     {"5":2,"6":1,"7":1,"9":3,"12":1,"13":1},
+  "NZL":     {"4":2,"10":1,"14":1,"15":1,"19":1,"20":1},
+  "CZE":     {"12":1,"17":1,"19":1},
+  "ESP":     {"3":1,"12":2,"16":1,"20":1},
+  "CAN":     {"2":1,"4":1,"5":1,"8":1,"14":1,"17":1},
+  "CPV":     {"3":1,"10":1,"16":1,"19":3,"20":1},
+  "BIH":     {"5":1,"8":2,"9":1,"14":1,"15":1,"16":1,"17":1},
+  "KSA":     {"4":1,"6":1,"8":1,"10":1,"15":1,"16":1},
+  "QAT":     {"5":2,"8":1,"9":1,"14":2,"18":1},
+  "URU":     {"2":1,"7":1,"12":1,"16":1,"19":1},
+  "SUI":     {"5":1,"6":1,"10":1,"15":4,"20":2},
+  "FRA":     {"14":1,"18":1},
+  "BRA":     {"3":1,"5":1,"7":1,"19":1},
+  "SEN":     {"2":1,"3":1,"15":1,"18":1},
+  "MAR":     {"2":1,"12":1,"14":1,"17":1,"18":1,"20":2},
+  "IRQ":     {"2":1,"7":1,"13":2,"15":1,"16":1,"20":2},
+  "HAI":     {"8":1,"9":1,"11":1,"14":1,"16":1},
+  "NOR":     {"7":1,"8":1,"15":1,"17":1},
+  "SCO":     {"3":1,"11":1,"15":1,"16":1,"19":2},
+  "ARG":     {"13":1,"16":2,"20":1},
+  "USA":     {"9":2,"11":1,"13":1,"19":1},
+  "ALG":     {"1":1,"4":1,"6":1,"9":1,"12":1,"13":1},
+  "PAR":     {"1":1,"4":1,"5":1,"9":1,"11":1,"14":1},
+  "AUT":     {"1":1,"11":2,"15":2,"16":1,"18":1,"19":2},
+  "AUS":     {"4":1,"7":1,"9":2,"10":1,"14":1,"18":3,"19":1},
+  "JOR":     {"3":1,"4":1,"7":1,"19":1},
+  "TUR":     {"2":1,"3":1,"6":1,"10":1,"15":2,"16":2,"19":1,"20":1},
+  "POR":     {"2":1,"7":1,"10":1,"11":1,"16":1},
+  "GER":     {"4":1,"11":1},
+  "COD":     {"3":1,"5":1,"7":1,"8":1,"9":2,"10":1,"16":1,"17":2,"18":1,"19":1},
+  "CUW":     {"3":2,"6":1,"7":1,"16":1,"18":1,"20":2},
+  "UZB":     {"7":1,"20":1},
+  "CIV":     {"4":1,"6":1,"7":1,"10":1,"11":1,"14":1,"15":1,"19":1,"20":1},
+  "COL":     {"4":2,"5":1,"18":1},
+  "ECU":     {"4":2,"12":2,"14":2,"17":1,"18":1},
+  "ENG":     {"7":2,"10":1,"13":2,"14":1,"18":1},
+  "NED":     {"4":2,"5":2,"9":1,"12":1,"13":1,"14":1,"16":1},
+  "CRO":     {"3":1,"4":1,"5":3,"7":1,"8":1,"14":2,"16":1,"18":1},
+  "JPN":     {"3":1,"4":1,"5":1,"6":1,"17":1,"18":2},
+  "GHA":     {"3":1,"4":2,"5":1,"7":2,"8":1,"11":1,"14":1},
+  "SWE":     {"7":1,"10":1,"14":1},
+  "PAN":     {"3":1,"6":1,"8":1,"15":1,"19":3},
+  "TUN":     {"2":1,"7":1,"8":2,"9":2,"17":1},
+  "BEL":     {"4":1,"5":1,"8":2,"9":2,"12":1},
+  "FWC":     {"9":1,"15":1,"16":1,"25":1},
+};
 
+let state = {};
+let repState = {}; // { teamCode: { "numStr": count } }
+let pending = null;
+let pendingRep = null;
+let tempRepCount = 0;
+let currentTab = 'album';
+
+// ========== ALBUM ==========
 function estadoInicial() {
   state = {};
   teamsData.forEach(t => {
@@ -195,10 +334,8 @@ async function cargarDesdeSupabase() {
     });
     const data = await res.json();
     if (data && data[0] && Object.keys(data[0].state).length > 0) {
-      // Supabase tiene datos — usarlos
       state = data[0].state;
     } else {
-      // Supabase vacío — migrar desde localStorage si hay
       const local = localStorage.getItem(LOCAL_KEY);
       if (local) {
         state = JSON.parse(local);
@@ -210,13 +347,8 @@ async function cargarDesdeSupabase() {
       }
     }
   } catch(e) {
-    // Sin internet — usar localStorage como fallback
     const local = localStorage.getItem(LOCAL_KEY);
-    if (local) {
-      state = JSON.parse(local);
-    } else {
-      estadoInicial();
-    }
+    if (local) { state = JSON.parse(local); } else { estadoInicial(); }
   }
   document.getElementById('loadingMsg').style.display = 'none';
   renderTeams();
@@ -229,16 +361,12 @@ async function guardarEnSupabase() {
     await fetch(`${SUPABASE_URL}/rest/v1/figus?id=eq.${ROW_ID}`, {
       method: 'PATCH',
       headers: {
-        'apikey': SUPABASE_KEY,
-        'Authorization': `Bearer ${SUPABASE_KEY}`,
-        'Content-Type': 'application/json',
-        'Prefer': 'return=minimal'
+        'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`,
+        'Content-Type': 'application/json', 'Prefer': 'return=minimal'
       },
       body: JSON.stringify({ state, updated_at: new Date().toISOString() })
     });
-  } catch(e) {
-    console.log('Sin conexión, guardado solo local');
-  }
+  } catch(e) { console.log('Sin conexión, guardado solo local'); }
 }
 
 function saveState() { guardarEnSupabase(); }
@@ -248,8 +376,7 @@ function updateStats() {
   teamsData.forEach(t => {
     const got = state[t.code] || [];
     const faltan = t.all.length - got.length;
-    totalFaltan += faltan;
-    totalTienen += got.length;
+    totalFaltan += faltan; totalTienen += got.length;
     if (faltan === 0) equiposCompletos++;
   });
   document.getElementById('totalFaltan').textContent = totalFaltan;
@@ -296,6 +423,8 @@ function toggleTeam(code) {
   if (!isOpen) block.classList.add('open');
 }
 
+function filterTeams(val) { renderTeams(val); }
+
 function askConfirm(teamCode, num, teamName, isGot) {
   pending = { teamCode, num, isGot };
   document.getElementById('modalTitle').textContent = isGot ? '¿Marcarla como faltante?' : '¿La consiguieron?';
@@ -315,60 +444,190 @@ function confirmGot() {
   if (!pending) return;
   const { teamCode, num, isGot } = pending;
   if (!state[teamCode]) state[teamCode] = [];
-  if (isGot) {
-    state[teamCode] = state[teamCode].filter(n => n !== num);
-  } else {
-    if (!state[teamCode].includes(num)) state[teamCode].push(num);
-  }
+  if (isGot) { state[teamCode] = state[teamCode].filter(n => n !== num); }
+  else { if (!state[teamCode].includes(num)) state[teamCode].push(num); }
   const openCode = teamCode;
-  saveState();
-  closeModal();
+  saveState(); closeModal();
   renderTeams(document.getElementById('searchInput').value);
   const block = document.querySelector(`.team-block[data-code="${openCode}"]`);
   if (block) block.classList.add('open');
   updateStats();
 }
 
-function filterTeams(val) { renderTeams(val); }
-
 document.getElementById('modalOverlay').addEventListener('click', function(e) {
   if (e.target === this) closeModal();
 });
 
-function exportarASupabase() {
-  const local = localStorage.getItem(LOCAL_KEY);
-  if (!local) { alert('No hay datos locales para subir.'); return; }
-  state = JSON.parse(local);
-  guardarEnSupabase().then(() => alert('✅ Datos subidos a la nube correctamente!'));
+// ========== REPETIDAS ==========
+async function cargarRepetidas() {
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/figus?id=eq.${REP_ROW_ID}&select=state`, {
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+    });
+    const data = await res.json();
+    if (data && data[0] && data[0].state && Object.keys(data[0].state).length > 0) {
+      repState = data[0].state;
+    } else {
+      // Inicializar con los datos del PDF
+      repState = JSON.parse(JSON.stringify(repetidasIniciales));
+      await guardarRepetidas();
+    }
+  } catch(e) {
+    const local = localStorage.getItem(REP_LOCAL_KEY);
+    if (local) { repState = JSON.parse(local); }
+    else { repState = JSON.parse(JSON.stringify(repetidasIniciales)); }
+  }
 }
 
+async function guardarRepetidas() {
+  localStorage.setItem(REP_LOCAL_KEY, JSON.stringify(repState));
+  try {
+    // Intentar PATCH primero, si falla hacer POST
+    const patchRes = await fetch(`${SUPABASE_URL}/rest/v1/figus?id=eq.${REP_ROW_ID}`, {
+      method: 'PATCH',
+      headers: {
+        'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`,
+        'Content-Type': 'application/json', 'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({ state: repState, updated_at: new Date().toISOString() })
+    });
+    // Si no existe la fila, crear
+    if (patchRes.status === 404 || patchRes.status === 406) {
+      await fetch(`${SUPABASE_URL}/rest/v1/figus`, {
+        method: 'POST',
+        headers: {
+          'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ id: REP_ROW_ID, state: repState, updated_at: new Date().toISOString() })
+      });
+    }
+  } catch(e) { console.log('Sin conexión, rep guardada solo local'); }
+}
+
+function updateRepStats() {
+  let totalRep = 0, equiposConRep = 0;
+  teamsData.forEach(t => {
+    const rep = repState[t.code] || {};
+    const sumEquipo = Object.values(rep).reduce((a,b) => a+b, 0);
+    totalRep += sumEquipo;
+    if (sumEquipo > 0) equiposConRep++;
+  });
+  document.getElementById('totalRepetidas').textContent = totalRep;
+  document.getElementById('totalEquiposRep').textContent = equiposConRep;
+}
+
+function renderRepetidas(filter = '') {
+  const container = document.getElementById('repContainer');
+  const filtered = teamsData.filter(t => t.code.toLowerCase().includes((filter||'').toLowerCase()));
+  container.innerHTML = '';
+  filtered.forEach(team => {
+    const rep = repState[team.code] || {};
+    const totalRep = Object.values(rep).reduce((a,b) => a+b, 0);
+    const block = document.createElement('div');
+    block.className = 'team-block';
+    block.dataset.code = 'rep-' + team.code;
+    block.innerHTML = `
+      <div class="team-header" onclick="toggleRepTeam('rep-${team.code}')">
+        <div class="team-flag-name"><span class="team-flag">${team.flag}</span><span>${team.code}</span></div>
+        <div class="team-badge">
+          ${totalRep > 0 ? `<span class="team-count">Repetidas: <span>${totalRep}</span></span>` : '<span style="font-size:0.75rem;color:#4a6a85;">Sin repetidas</span>'}
+          <span class="chevron">▼</span>
+        </div>
+      </div>
+      <div class="nums-grid">
+        ${team.all.map(n => {
+          const key = String(n);
+          const count = rep[key] || 0;
+          const hasRep = count > 0;
+          return `<button class="figu-btn-rep ${hasRep ? 'rep-has' : 'rep-none'}" onclick="openRepModal('${team.code}','${key}')">
+            ${n}${hasRep ? `<span class="rep-count-badge">x${count}</span>` : ''}
+          </button>`;
+        }).join('')}
+      </div>`;
+    container.appendChild(block);
+  });
+  updateRepStats();
+}
+
+function toggleRepTeam(code) {
+  const block = document.querySelector(`.team-block[data-code="${code}"]`);
+  if (!block) return;
+  const isOpen = block.classList.contains('open');
+  document.querySelectorAll('.team-block.open').forEach(b => b.classList.remove('open'));
+  if (!isOpen) block.classList.add('open');
+}
+
+function filterRep(val) { renderRepetidas(val); }
+
+function openRepModal(teamCode, num) {
+  const rep = repState[teamCode] || {};
+  const currentCount = rep[String(num)] || 0;
+  pendingRep = { teamCode, num };
+  tempRepCount = currentCount === 0 ? 1 : currentCount;
+
+  const team = teamsData.find(t => t.code === teamCode);
+  document.getElementById('modalRepTitle').textContent = `${team ? team.flag : ''} ${teamCode} #${num}`;
+  document.getElementById('modalRepText').textContent = currentCount > 0 ? `Tenés ${currentCount} repetida${currentCount > 1 ? 's' : ''}` : 'No está marcada como repetida';
+  document.getElementById('repCountDisplay').textContent = tempRepCount;
+  document.getElementById('modalRepOverlay').classList.add('active');
+}
+
+function changeRepCount(delta) {
+  tempRepCount = Math.max(0, tempRepCount + delta);
+  document.getElementById('repCountDisplay').textContent = tempRepCount;
+}
+
+function closeRepModal() {
+  document.getElementById('modalRepOverlay').classList.remove('active');
+  pendingRep = null;
+}
+
+function confirmRep() {
+  if (!pendingRep) return;
+  const { teamCode, num } = pendingRep;
+  if (!repState[teamCode]) repState[teamCode] = {};
+  if (tempRepCount === 0) {
+    delete repState[teamCode][num];
+  } else {
+    repState[teamCode][num] = tempRepCount;
+  }
+  guardarRepetidas();
+  closeRepModal();
+  renderRepetidas(document.getElementById('searchRepInput').value);
+}
+
+document.getElementById('modalRepOverlay').addEventListener('click', function(e) {
+  if (e.target === this) closeRepModal();
+});
+
+// ========== TABS ==========
+function switchTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+  document.getElementById('screen-' + tab).classList.add('active');
+  if (tab === 'repetidas') {
+    renderRepetidas();
+  }
+}
+
+// ========== IMPRIMIR ==========
 function imprimir() {
   const hoy = new Date().toLocaleDateString('es-AR');
   let totalFaltan = 0;
   teamsData.forEach(t => { const got = state[t.code] || []; totalFaltan += t.all.length - got.length; });
-  let rows = '';
-  teamsData.forEach(t => {
-    const got = (state[t.code] || []).map(String);
-    const faltan = t.all.map(String).filter(n => !got.includes(n));
-    if (faltan.length === 0) {
-      rows += `<tr><td style="font-weight:bold;padding:2px 6px;">${t.code}</td><td style="color:#27ae60;font-style:italic;">✓ Completo</td></tr>`;
-    } else {
-      rows += `<tr><td style="font-weight:bold;padding:2px 6px;">${t.code}</td><td style="color:#c0392b;font-weight:600;">${faltan.join(' - ')}</td></tr>`;
-    }
-  });
-
   const mitad = Math.ceil(teamsData.length / 2);
-  const filas = teamsData.map((t, i) => {
+  const filas = teamsData.map((t) => {
     const got = (state[t.code] || []).map(String);
     const faltan = t.all.map(String).filter(n => !got.includes(n));
     return faltan.length === 0
       ? `<tr><td style="font-weight:bold;padding:1px 4px;font-size:9pt;">${t.code}</td><td style="color:#27ae60;font-size:9pt;">✓</td></tr>`
       : `<tr><td style="font-weight:bold;padding:1px 4px;font-size:9pt;">${t.code}</td><td style="color:#c0392b;font-weight:600;font-size:9pt;">${faltan.join(' - ')}</td></tr>`;
   });
-
   const col1 = filas.slice(0, mitad).join('');
   const col2 = filas.slice(mitad).join('');
-
   const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
   <title>Figus Mateo y Pedro</title>
   <style>
@@ -388,14 +647,17 @@ function imprimir() {
   </div>
   <script>window.onload = function(){ window.print(); window.onafterprint = function(){ window.close(); }; }<\/script>
   </body></html>`;
-
   const ventana = window.open('', '_blank', 'width=800,height=600');
   ventana.document.write(html);
   ventana.document.close();
 }
 
-// Arrancar
-cargarDesdeSupabase();
+// ========== ARRANCAR ==========
+async function init() {
+  await cargarDesdeSupabase();
+  await cargarRepetidas();
+}
+init();
 </script>
 </body>
 </html>
