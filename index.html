@@ -202,7 +202,6 @@ const REP_LOCAL_KEY = 'figus-repetidas-v1';
 const REP_ROW_ID = 'repetidas-mateo-pedro';
 
 const teamsData = [
-  { code: "Panini", flag: "📒", all: ["00","FWC1","FWC2","FWC3","FWC4","FWC5","FWC6","FWC7","FWC8"], faltan: ["FWC1","FWC3","FWC4","FWC5","FWC7","FWC8"] },
   { code: "Mexico",  flag: "🇲🇽", faltan: [1,2,3,4,9,10,14,17,18] },
   { code: "RSA",     flag: "🇿🇦", faltan: [4,10,11,12,17,20] },
   { code: "KOR",     flag: "🇰🇷", faltan: [2,8,10,11,13,14,15,16,17,19] },
@@ -251,8 +250,10 @@ const teamsData = [
   { code: "CRO",     flag: "🇭🇷", faltan: [2,6,10,11,15,17,19] },
   { code: "GHA",     flag: "🇬🇭", faltan: [1,2,6,10,14,19] },
   { code: "PAN",     flag: "🇵🇦", faltan: [1,5,9,10,11,14,15,16,18,20] },
-  { code: "FWC",     flag: "🏆",  all: [9,10,11,12,13,14,15,16,17,18,19], faltan: [10,11,19] },
 ];
+
+// Mover FWC al principio
+teamsData.unshift({ code: "FWC", flag: "🏆", all: ["00",1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19], faltan: [1,2,3,4,5,6,7,8,10,11,12,13,14,17,18,19] });
 
 teamsData.forEach(t => {
   if (!t.all) t.all = Array.from({length: 20}, (_, i) => i + 1);
@@ -309,8 +310,7 @@ const repetidasIniciales = {
   "PAN":     {"3":1,"6":1,"8":1,"15":1,"19":3},
   "TUN":     {"2":1,"7":1,"8":2,"9":2,"17":1},
   "BEL":     {"4":1,"5":1,"8":2,"9":2,"12":1},
-  "Panini":  {"00":1},
-  "FWC":     {"9":1,"15":1,"16":1},
+  "FWC":     {"00":1,"9":1,"15":1,"16":1},
 };
 
 let state = {};
