@@ -661,8 +661,8 @@ function imprimirRepetidas() {
   const filas = [];
   teamsData.forEach(t => {
     const rep = repState[t.code] || {};
-    const items = Object.entries(rep)
-      .filter(([,cnt]) => cnt > 0)
+    const entradas = Object.entries(rep).filter(([,cnt]) => cnt > 0);
+    const items = entradas
       .sort((a,b) => {
         const na = isNaN(a[0]) ? a[0] : Number(a[0]);
         const nb = isNaN(b[0]) ? b[0] : Number(b[0]);
@@ -670,7 +670,7 @@ function imprimirRepetidas() {
       })
       .map(([num, cnt]) => cnt > 1 ? `${num}(X${cnt})` : num);
     if (items.length > 0) {
-      totalRep += items.length;
+      totalRep += entradas.reduce((a,[,cnt]) => a+cnt, 0);
       filas.push(`<tr><td style="font-weight:bold;padding:2px 6px;font-size:9pt;white-space:nowrap;">${t.code}=</td><td style="font-size:9pt;color:#c0392b;font-weight:600;">${items.join('-')}</td></tr>`);
     }
   });
