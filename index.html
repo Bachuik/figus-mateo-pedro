@@ -521,13 +521,15 @@ function updateRepStats() {
 
 function renderRepetidas(filter = '') {
   const container = document.getElementById('repContainer');
+  const abierto = document.querySelector('#repContainer .team-block.open');
+  const codigoAbierto = abierto ? abierto.dataset.code : null;
   const filtered = teamsData.filter(t => t.code.toLowerCase().includes((filter||'').toLowerCase()));
   container.innerHTML = '';
   filtered.forEach(team => {
     const rep = repState[team.code] || {};
     const totalRep = Object.values(rep).reduce((a,b) => a+b, 0);
     const block = document.createElement('div');
-    block.className = 'team-block';
+    block.className = 'team-block' + (('rep-' + team.code) === codigoAbierto ? ' open' : '');
     block.dataset.code = 'rep-' + team.code;
     block.innerHTML = `
       <div class="team-header" onclick="toggleRepTeam('rep-${team.code}')">
